@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import json
+import teste  # Importing the teste.py module
 
 # URL da API da Blockchain (ajuste conforme necessário)
 API_URL = "http://192.168.1.6:5000"
