@@ -11,10 +11,10 @@ tab1, tab2, tab3 = st.tabs(["Registrar Transação", "Ver Blockchain", "Minerar 
 with tab1:
     st.header("Registrar Transação")
 
-    sender = st.text_input("Remetente (sender)", "")
-    recipient = st.text_input("Destinatário (recipient)", "")
-    complete_recipient = st.text_input("Destinatário Completo (complete_recipient)", "")
-    amount = st.text_input("Valor (amount) em texto", "")
+    sender = st.text_input("Remetente", "")
+    recipient = st.text_input("Corpo", "")
+    complete_recipient = st.text_input("Corpo Completo", "")
+    amount = st.text_input("Objeto", "")
 
     if st.button("Registrar Transação"):
         if sender and recipient and complete_recipient and amount:
