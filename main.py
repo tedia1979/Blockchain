@@ -27,20 +27,24 @@ class Blockchain:
         self.current_transactions = []
         self.chain.append(block)
         return block
-    
-    def new_transaction(self, sender, recipient, amount):
+
+    def new_transaction(self, sender, recipient, complete_recipient, amount):
+        """
+        amount e complete_recipient agora são strings.
+        """
         self.current_transactions.append({
             'sender': sender,
             'recipient': recipient,
+            'complete_recipient': complete_recipient,
             'amount': amount,
         })
         return self.last_block['index'] + 1
-    
+
     @staticmethod
     def hash(block):
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
-    
+
     @property
     def last_block(self):
         return self.chain[-1]
@@ -51,13 +55,13 @@ class Blockchain:
         while not self.valid_proof(last_proof, proof):
             proof += 1
         return proof
-    
+
     @staticmethod
     def valid_proof(last_proof, proof):
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
-    
+
     def resolve_conflicts(self):
         neighbours = self.nodes
         new_chain = None
@@ -71,11 +75,11 @@ class Blockchain:
                 if length > max_length and self.valid_chain(chain):
                     max_length = length
                     new_chain = chain
-            
+
         if new_chain:
             self.chain = new_chain
             return True
-        
+
         return False
 
     def valid_chain(self, chain):
@@ -92,7 +96,7 @@ class Blockchain:
 
             last_block = block
             current_index += 1
-        
+
         return True
 
 app = Flask(__name__)
@@ -107,11 +111,13 @@ blockchain = Blockchain()
 def mine():
     last_block = blockchain.last_block
     proof = blockchain.proof_of_work(last_block)
-    
+
+    # Recompensa pela mineração
     blockchain.new_transaction(
         sender="0",
         recipient=node_identifier,
-        amount=1,
+        complete_recipient="Miner Reward",
+        amount="1",  # Agora em texto
     )
 
     previous_hash = blockchain.hash(last_block)
@@ -130,11 +136,17 @@ def mine():
 def new_transaction():
     values = request.get_json()
 
-    required = ['sender', 'recipient', 'amount']
+    # Agora esperamos 4 campos, todos strings
+    required = ['sender', 'recipient', 'complete_recipient', 'amount']
     if not all(k in values for k in required):
-        return 'Valores ausentes', 400
+        return 'Valores ausentes no corpo da requisição', 400
 
-    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+    index = blockchain.new_transaction(
+        values['sender'],
+        values['recipient'],
+        values['complete_recipient'],
+        values['amount']
+    )
 
     response = {'message': f'Transação será adicionada ao bloco {index}'}
     return jsonify(response), 201
@@ -148,4 +160,5 @@ def full_chain():
     return jsonify(response), 200
 
 if __name__ == '__main__':
+    # Rode com: python nome_do_arquivo.py
     app.run(host='0.0.0.0', port=5000)
